@@ -75,7 +75,7 @@ def parse turtle = nil
   turtle ||= initial_turtle
   @level ||= 0
   @level += 1
-  if true
+  if false
     s = c(turtle)
     unless s == '-' or s == '|'
       pp [ :s=, s, :turtle=, turtle, :level=, @level ]
@@ -92,7 +92,7 @@ def _parse turtle
     nil
   when '@'
     4.times do
-      pp [ :turtle=, turtle ]
+      # pp [ :turtle=, turtle ]
       if c(new_turtle = forward(turtle))
         return _parse(new_turtle)
       end
@@ -196,9 +196,9 @@ until file.eof?
   puts wired_up.lines * "\n" if verbose
   pp [ :variables, wired_up.variables ] unless wired_up.variables.empty?
   wired_up.inputs = { :a => true, :b => false, :c => true }
-  result = wired_up.value
-  pp [ :inputs, wired_up.inputs ] unless wired_up.variables.empty?
   pp [ :expr, wired_up.expr ]
+  pp [ :inputs, wired_up.inputs ] unless wired_up.variables.empty?
+  result = wired_up.value
   pp [ :result=, result ]
   
 end
