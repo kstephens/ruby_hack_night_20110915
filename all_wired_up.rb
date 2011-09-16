@@ -158,7 +158,7 @@ def value(input = { })
     [ eval(expr) ]).first
 end
 
-def parse_from! file
+def lines_from! file
   @lines = [ ]
   until file.eof?
     line = file.readline
@@ -186,7 +186,7 @@ verbose = false
 verbose = true
 until file.eof?
   wired_up = WiredUp.new
-  wired_up.parse_from! file
+  wired_up.lines_from! file
   
   puts "======================================================" if verbose
   puts wired_up.lines * "\n" if verbose
