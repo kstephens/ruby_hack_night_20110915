@@ -4,20 +4,24 @@ require 'pp'
 class WiredUp
   attr_accessor :lines, :inputs
 
+  SPACE = ' '.freeze
+
 def c(x, y = nil)
   if Array === x
     y = x[1]
     x = x[0]
   end
   s = lines[y]
-  if s 
+  if s
     if x >= 0 
       s = s[x, 1]
     else
       return nil
     end
   end
-  s && (s.empty? ? nil : s)
+  s = s && (s.empty? ? nil : s)
+  s = nil if s == SPACE
+  s
 end
 
 # Find @.
@@ -71,26 +75,30 @@ def parse turtle = nil
   turtle ||= initial_turtle
   @level ||= 0
   @level += 1
-  s = c(turtle)
-
-  if false # true
+  if true
+    s = c(turtle)
     unless s == '-' or s == '|'
       pp [ :s=, s, :turtle=, turtle, :level=, @level ]
     end
   end
+  result = _parse(turtle)
+  @level -= 1
+  result
+end
 
-  result =
-  case s
-  when nil, ' '
+def _parse turtle
+  case s = c(turtle)
+  when nil
     nil
   when '@'
     4.times do
+      pp [ :turtle=, turtle ]
       if c(new_turtle = forward(turtle))
-        return parse(new_turtle)
+        return _parse(new_turtle)
       end
       turtle = turn_left(turtle)
     end
-    raise "Cannot go anywhere from #{turtle}"
+    raise "Cannot go anywhere from #{turtle.inspect}"
   when '0'
     false
   when '1'
@@ -112,7 +120,7 @@ def parse turtle = nil
     else
       turtle = forward(turtle)
     end
-    parse(turtle)
+    _parse(turtle)
   when 'O', 'A', 'X', 'N'
     right = parse(forward(turn_right(turtle)))
     left  = parse(forward(turn_left(turtle)))
@@ -133,10 +141,6 @@ def parse turtle = nil
   else
     raise "Error at #{s.inspect} #{turtle.inspect}"
   end
-
-  @level -= 1
-  # pp [ :result=, result, :level=, level]
-  result
 end
 
 def expr
