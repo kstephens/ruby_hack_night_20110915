@@ -11,12 +11,6 @@ until file.eof?
   lines << line
 end
 
-=begin
-lines.each { | l | l.sub(/#.*/, '') }
-#lines.each { | l | l.gsub!(/[^01AOXN@]/i, ''); }
-lines.each { | l | l.gsub!(/[^01AOXN]/i, ''); }
-lines.reject! { | l | l.empty? }
-=end
 pp [ :input_lines=, lines ]
 
 $lines = lines
@@ -33,7 +27,7 @@ def c(x, y = nil)
       return nil
     end
   end
-  s.empty? ? nil : s
+  s && (s.empty? ? nil : s)
 end
 
 def forward(turtle)
@@ -79,6 +73,8 @@ def parse turtle, level = 0
 
   result =
   case s
+  when nil, ' '
+    nil
   when '@'
     parse(forward(left(turtle)), level + 1)
   when '0'
@@ -99,25 +95,23 @@ def parse turtle, level = 0
       turtle = forward(turtle)
     end
     parse(turtle, level)
-  when 'O'
+  when 'O', 'A', 'X', 'N'
     right = parse(forward(turn_right(turtle)), level + 1)
     left  = parse(forward(turn_left(turtle)),  level + 1)
-    pp [ level, :or, turtle, left, right ]
-    left or right
-  when 'A'
-    right = parse(forward(turn_right(turtle)), level + 1)
-    left  = parse(forward(turn_left(turtle)),  level + 1)
-    pp [ level, :and, left, right ]
-    left and right
-  when 'X'
-    right = parse(forward(turn_right(turtle)), level + 1)
-    left  = parse(forward(turn_left(turtle)),  level + 1)
-    pp [ level, :xor, left, right ]
-    left != right
-  when 'N'
-    right = parse(forward(turn_right(turtle)), level + 1)
-    pp [ level, :not, right ]
-    not right
+    pp [ level, s, turtle, left, right ]
+    case s
+    when 'O'
+      left or right
+    when 'A'
+      left and right
+    when 'X'
+      left != right
+    when 'N'
+      right = left if left == nil
+      not right
+    else
+      raise
+    end
   else
     raise "Error at #{s.inspect} #{turtle.inspect}"
   end
