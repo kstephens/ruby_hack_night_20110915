@@ -1,12 +1,15 @@
 #!/usr/bin/env ruby
 require 'pp'
 
+class WiredUp
+  attr_accessor :lines
+
 def c(x, y = nil)
   if Array === x
     y = x[1]
     x = x[0]
   end
-  s = $lines[y]
+  s = lines[y]
   if s 
     if x >= 0 
       s = s[x, 1]
@@ -15,6 +18,18 @@ def c(x, y = nil)
     end
   end
   s && (s.empty? ? nil : s)
+end
+
+def initial_turtle
+  # Find @.
+  turtle = [ 0, 0, -1, 0 ]
+  lines.each do | line |
+    if turtle[0] = line.index('@')
+      break
+    end
+    turtle[1] += 1
+  end
+  turtle
 end
 
 def forward(turtle)
@@ -50,7 +65,8 @@ def left(turtle)
 end
 
 # returns evaluated result
-def parse turtle, level = 0
+def parse turtle = nil, level = 0
+  turtle ||= initial_turtle
   s = c(turtle)
 
 =begin
@@ -70,15 +86,15 @@ def parse turtle, level = 0
     false
   when '1'
     true
-  when '-'
-    parse(forward(turtle), level)
-  when '|'
+  when /[a-z]/
+    s
+  when '-', '|'
     l_of  = forward(turn_left(turtle))
     r_of  = forward(turn_right(turtle))
     case
-    when c(l_of) == '-'
+    when c(l_of) == (s == '-' ? '|' : '-')
       turtle = l_of
-    when c(r_of) == '-'
+    when c(r_of) == (s == '-' ? '|' : '-')
       turtle = r_of
     else
       turtle = forward(turtle)
@@ -90,14 +106,14 @@ def parse turtle, level = 0
     # pp [ level, s, turtle, left, right ]
     case s
     when 'O'
-      left or right
+      "(#{left} or #{right})"
     when 'A'
-      left and right
+      "(#{left} and #{right})"
     when 'X'
-      left != right
+      "(#{left} != #{right})"
     when 'N'
-      right = left if left == nil
-      not right
+      right = left if right == nil
+      "(not #{right})"
     else
       raise
     end
@@ -107,6 +123,8 @@ def parse turtle, level = 0
 
   # pp [ :result=, result, :level=, level]
   result
+end
+
 end
 
 file = File.open(ARGV[0])
@@ -123,20 +141,14 @@ until file.eof?
 
   # pp [ :input_lines=, lines ]
 
-  $lines = lines
-  # Find @.
-  turtle = [ 0, 0, -1, 0 ]
-  $lines.each do | line |
-    if turtle[0] = line.index('@')
-      break
-    end
-    turtle[1] += 1
-  end
+  wired_up = WiredUp.new
+  wired_up.lines = lines
   
   puts "======================================================"
   puts lines * "\n"
-  pp [ :turtle, turtle ]
-  result = parse(turtle)
+  expr = wired_up.parse
+  pp [ :expr=, expr ]
+  result = eval(expr)
   pp [ :result=, result ]
   
 end
