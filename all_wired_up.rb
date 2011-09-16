@@ -70,7 +70,7 @@ def left(turtle)
   ]
 end
 
-# returns evaluated result
+# Returns Ruby expression.
 def parse turtle = nil
   turtle ||= initial_turtle
   @level ||= 0
