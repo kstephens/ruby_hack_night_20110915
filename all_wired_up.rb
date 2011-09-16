@@ -192,7 +192,7 @@ until file.eof?
   wired_up = WiredUp.new
   wired_up.lines_from! file
   
-  puts "======================================================" if verbose
+  puts "\n======================================================\n\n" if verbose
   puts wired_up.lines * "\n" if verbose
   pp [ :variables, wired_up.variables ] unless wired_up.variables.empty?
   wired_up.inputs = { :a => true, :b => false, :c => true }
