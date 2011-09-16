@@ -39,10 +39,10 @@ def initial_turtle
 end
 
 def forward(turtle)
-  [ turtle[0] + turtle[2], 
-    turtle[1] + turtle[3],
-    turtle[2],
-    turtle[3],
+  [ turtle[0] + turtle[2], # x
+    turtle[1] + turtle[3], # y
+    turtle[2],             # dx
+    turtle[3],             # dy
   ]
 end
 
