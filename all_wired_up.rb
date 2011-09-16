@@ -73,7 +73,7 @@ def parse turtle = nil
   @level += 1
   s = c(turtle)
 
-  if true
+  if false # true
     unless s == '-' or s == '|'
       pp [ :s=, s, :turtle=, turtle, :level=, @level ]
     end
@@ -190,7 +190,7 @@ until file.eof?
   
   puts "======================================================" if verbose
   puts wired_up.lines * "\n" if verbose
-  pp [ :variables, wired_up.variables ]
+  pp [ :variables, wired_up.variables ] unless wired_up.variables.empty?
   wired_up.inputs = { :a => true, :b => false, :c => true }
   result = wired_up.value
   pp [ :inputs, wired_up.inputs ] unless wired_up.variables.empty?
