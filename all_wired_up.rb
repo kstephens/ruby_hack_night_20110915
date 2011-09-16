@@ -20,16 +20,18 @@ def c(x, y = nil)
   s && (s.empty? ? nil : s)
 end
 
+# Find @.
 def initial_turtle
-  # Find @.
+  initial_turtle = nil
   turtle = [ 0, 0, -1, 0 ]
   lines.each do | line |
     if turtle[0] = line.index('@')
+      initial_turtle = turtle
       break
     end
     turtle[1] += 1
   end
-  turtle
+  initial_turtle or raise "Cannot find @ in\n#{lines * "\n"}"
 end
 
 def forward(turtle)
@@ -65,23 +67,30 @@ def left(turtle)
 end
 
 # returns evaluated result
-def parse turtle = nil, level = 0
+def parse turtle = nil
   turtle ||= initial_turtle
+  @level ||= 0
+  @level += 1
   s = c(turtle)
 
-=begin
-  unless s == '-'
-    pp [ :turtle=, turtle, :level=, level ]
-    pp [ :s=, s ] 
+  if true
+    unless s == '-' or s == '|'
+      pp [ :s=, s, :turtle=, turtle, :level=, @level ]
+    end
   end
-=end
 
   result =
   case s
   when nil, ' '
     nil
   when '@'
-    parse(forward(left(turtle)), level + 1)
+    4.times do
+      if c(new_turtle = forward(turtle))
+        return parse(new_turtle)
+      end
+      turtle = turn_left(turtle)
+    end
+    raise "Cannot go anywhere from #{turtle}"
   when '0'
     false
   when '1'
@@ -94,18 +103,19 @@ def parse turtle = nil, level = 0
   when '-', '|'
     l_of  = forward(turn_left(turtle))
     r_of  = forward(turn_right(turtle))
+    turn_c = (s == '-' ? '|' : '-')
     case
-    when c(l_of) == (s == '-' ? '|' : '-')
+    when c(l_of) == turn_c
       turtle = l_of
-    when c(r_of) == (s == '-' ? '|' : '-')
+    when c(r_of) == turn_c
       turtle = r_of
     else
       turtle = forward(turtle)
     end
-    parse(turtle, level)
+    parse(turtle)
   when 'O', 'A', 'X', 'N'
-    right = parse(forward(turn_right(turtle)), level + 1)
-    left  = parse(forward(turn_left(turtle)),  level + 1)
+    right = parse(forward(turn_right(turtle)))
+    left  = parse(forward(turn_left(turtle)))
     # pp [ level, s, turtle, left, right ]
     case s
     when 'O'
@@ -124,13 +134,17 @@ def parse turtle = nil, level = 0
     raise "Error at #{s.inspect} #{turtle.inspect}"
   end
 
+  @level -= 1
   # pp [ :result=, result, :level=, level]
   result
 end
 
 def expr
   @expr ||=
-    parse
+    begin
+      @level = 0
+      parse
+    end
 end
 
 def variables
@@ -148,13 +162,20 @@ def parse_from! file
   @lines = [ ]
   until file.eof?
     line = file.readline
-    # pp [ :line=, line ]
-    break if line =~ /^\s*$/
+    if line && line =~ /^\s*$/
+      if lines.empty?
+        next
+      else
+        break
+      end
+    end
     line.chomp!
     lines << line
   end
 
   # pp [ :input_lines=, lines ]
+
+  self
 end
 
 end
