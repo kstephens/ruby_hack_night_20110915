@@ -22,14 +22,10 @@ end
 
 # Find @.
 def initial_turtle
-  initial_turtle = nil
-  turtle = [ 0, 0, -1, 0 ]
-  lines.each do | line |
-    if turtle[0] = line.index('@')
-      initial_turtle = turtle
-      break
-    end
+  turtle = [ 0, -1, -1, 0 ]
+  initial_turtle = lines.each do | line |
     turtle[1] += 1
+    break turtle if turtle[0] = line.index('@')
   end
   initial_turtle or raise "Cannot find @ in\n#{lines * "\n"}"
 end
