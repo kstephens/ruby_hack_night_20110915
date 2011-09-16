@@ -11,16 +11,12 @@ def c(x, y = nil)
     y = x[1]
     x = x[0]
   end
-  s = lines[y]
-  if s
-    if x >= 0 
+  if s = lines[y]
+    if 0 <= x and x < s.size
       s = s[x, 1]
-    else
-      return nil
+      s = nil if s.empty? || s == SPACE
     end
   end
-  s = s && (s.empty? ? nil : s)
-  s = nil if s == SPACE
   s
 end
 
@@ -187,19 +183,23 @@ end
 file = File.open(ARGV[0])
 
 verbose = false
-verbose = true
+#verbose = true
 until file.eof?
   wired_up = WiredUp.new
   wired_up.lines_from! file
   
-  puts "\n======================================================\n\n" if verbose
-  puts wired_up.lines * "\n" if verbose
-  pp [ :variables, wired_up.variables ] unless wired_up.variables.empty?
+  if verbose
+    puts "\n======================================================\n\n" 
+    puts wired_up.lines * "\n"
+  end
   wired_up.inputs = { :a => true, :b => false, :c => true }
-  pp [ :expr, wired_up.expr ]
-  pp [ :inputs, wired_up.inputs ] unless wired_up.variables.empty?
+  if verbose
+    pp [ :expr, wired_up.expr ]
+    pp [ :variables, wired_up.variables ] unless wired_up.variables.empty?
+    pp [ :inputs, wired_up.inputs ] unless wired_up.variables.empty?
+  end
   result = wired_up.value
-  pp [ :result=, result ]
-  
+  pp [ :result=, result ] if verbose
+  puts result ? "on" : "off"
 end
 
