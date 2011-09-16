@@ -3,6 +3,7 @@ require 'pp'
 
 class WiredUp
   attr_accessor :lines, :inputs
+  attr_accessor :verbose
 
   SPACE = ' '.freeze
 
@@ -67,13 +68,18 @@ def parse turtle = nil
   turtle ||= initial_turtle
   @level ||= 0
   @level += 1
-  if false
+  if verbose
     s = c(turtle)
     unless s == '-' or s == '|'
       pp [ :s=, s, :turtle=, turtle, :level=, @level ]
     end
   end
   result = _parse(turtle)
+  if verbose
+    unless s == '-' or s == '|'
+      pp [ :s=, s, :turtle=, turtle, :level=, @level, :result=, result ]
+    end
+  end
   @level -= 1
   result
 end
@@ -99,18 +105,18 @@ def _parse turtle
     v = s.to_sym
     @variables ||= [ ]
     @variables << v unless @variables.include?(v)
-    "@input[#{v.inspect}]"
+    "(! ! @inputs[#{v.inspect}])"
   when '-', '|'
-    l_of  = forward(turn_left(turtle))
-    r_of  = forward(turn_right(turtle))
+    left   = forward(turn_left(turtle))
+    right  = forward(turn_right(turtle))
     turn_c = (s == '-' ? '|' : '-')
-    case
-    when c(l_of) == turn_c
-      turtle = l_of
-    when c(r_of) == turn_c
-      turtle = r_of
+    turtle = case
+    when c(left) == turn_c
+      left
+    when c(right) == turn_c
+      right
     else
-      turtle = forward(turtle)
+      forward(turtle)
     end
     _parse(turtle)
   when 'O', 'A', 'X', 'N'
@@ -119,14 +125,14 @@ def _parse turtle
     # pp [ level, s, turtle, left, right ]
     case s
     when 'O'
-      "(#{left} or #{right})"
+      "(#{left} || #{right})"
     when 'A'
-      "(#{left} and #{right})"
+      "(#{left} && #{right})"
     when 'X'
       "(#{left} != #{right})"
     when 'N'
       right = left if right == nil
-      "(not #{right})"
+      "(! #{right})"
     else
       raise
     end
@@ -143,15 +149,26 @@ def expr
     end
 end
 
+def value_method
+  @value_method ||= 
+    begin
+      instance_eval <<END
+def _value
+  #{expr}
+end
+END
+      :_value
+    end
+end
+
 def variables
   expr
   @variables ||= [ ]
 end
 
-def value(input = { })
-  @input = input
-  (@value ||=
-    [ eval(expr) ]).first
+def value(inputs = nil)
+  @inputs = inputs if inputs
+  send(value_method)
 end
 
 def lines_from! file
@@ -178,12 +195,13 @@ end
 
 file = File.open(ARGV[0])
 
-verbose = false
+verbose = ENV['verbose']
 #verbose = true
 until file.eof?
   wired_up = WiredUp.new
   wired_up.lines_from! file
-  
+  wired_up.verbose = verbose
+
   if verbose
     puts "\n======================================================\n\n" 
     puts wired_up.lines * "\n"
@@ -191,8 +209,10 @@ until file.eof?
   wired_up.inputs = { :a => true, :b => false, :c => true }
   if verbose
     pp [ :expr, wired_up.expr ]
-    pp [ :variables, wired_up.variables ] unless wired_up.variables.empty?
-    pp [ :inputs, wired_up.inputs ] unless wired_up.variables.empty?
+    unless wired_up.variables.empty?
+      pp [ :variables, wired_up.variables ] 
+      pp [ :inputs, wired_up.inputs ]
+    end
   end
   result = wired_up.value
   pp [ :result=, result ] if verbose
