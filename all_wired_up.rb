@@ -2,7 +2,7 @@
 require 'pp'
 
 class WiredUp
-  attr_accessor :lines
+  attr_accessor :lines, :inputs
 
 def c(x, y = nil)
   if Array === x
@@ -87,7 +87,10 @@ def parse turtle = nil, level = 0
   when '1'
     true
   when /[a-z]/
-    s
+    v = s.to_sym
+    @variables ||= [ ]
+    @variables << v unless @variables.include?(v)
+    "@input[#{v.inspect}]"
   when '-', '|'
     l_of  = forward(turn_left(turtle))
     r_of  = forward(turn_right(turtle))
@@ -125,12 +128,24 @@ def parse turtle = nil, level = 0
   result
 end
 
+def expr
+  @expr ||=
+    parse
 end
 
-file = File.open(ARGV[0])
+def variables
+  expr
+  @variables ||= [ ]
+end
 
-until file.eof?
-  lines = [ ]
+def value(input = { })
+  @input = input
+  (@value ||=
+    [ eval(expr) ]).first
+end
+
+def parse_from! file
+  @lines = [ ]
   until file.eof?
     line = file.readline
     # pp [ :line=, line ]
@@ -140,15 +155,25 @@ until file.eof?
   end
 
   # pp [ :input_lines=, lines ]
+end
 
+end
+
+file = File.open(ARGV[0])
+
+verbose = false
+verbose = true
+until file.eof?
   wired_up = WiredUp.new
-  wired_up.lines = lines
+  wired_up.parse_from! file
   
-  puts "======================================================"
-  puts lines * "\n"
-  expr = wired_up.parse
-  pp [ :expr=, expr ]
-  result = eval(expr)
+  puts "======================================================" if verbose
+  puts wired_up.lines * "\n" if verbose
+  pp [ :variables, wired_up.variables ]
+  wired_up.inputs = { :a => true, :b => false, :c => true }
+  result = wired_up.value
+  pp [ :inputs, wired_up.inputs ] unless wired_up.variables.empty?
+  pp [ :expr, wired_up.expr ]
   pp [ :result=, result ]
   
 end
