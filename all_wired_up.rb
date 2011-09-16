@@ -1,19 +1,6 @@
 #!/usr/bin/env ruby
 require 'pp'
 
-file = File.open(ARGV[0])
-lines = [ ]
-until file.eof?
-  line = file.readline
-  pp [ :line=, line ]
-  break if line =~ /^\s*$/
-  line.chomp!
-  lines << line
-end
-
-pp [ :input_lines=, lines ]
-
-$lines = lines
 def c(x, y = nil)
   if Array === x
     y = x[1]
@@ -66,10 +53,12 @@ end
 def parse turtle, level = 0
   s = c(turtle)
 
+=begin
   unless s == '-'
     pp [ :turtle=, turtle, :level=, level ]
     pp [ :s=, s ] 
   end
+=end
 
   result =
   case s
@@ -98,7 +87,7 @@ def parse turtle, level = 0
   when 'O', 'A', 'X', 'N'
     right = parse(forward(turn_right(turtle)), level + 1)
     left  = parse(forward(turn_left(turtle)),  level + 1)
-    pp [ level, s, turtle, left, right ]
+    # pp [ level, s, turtle, left, right ]
     case s
     when 'O'
       left or right
@@ -116,21 +105,39 @@ def parse turtle, level = 0
     raise "Error at #{s.inspect} #{turtle.inspect}"
   end
 
-  pp [ :result=, result, :level=, level]
+  # pp [ :result=, result, :level=, level]
   result
 end
 
-# Find @.
-turtle = [ 0, 0, -1, 0 ]
-$lines.each do | line |
-  if turtle[0] = line.index('@')
-    break
+file = File.open(ARGV[0])
+
+until file.eof?
+  lines = [ ]
+  until file.eof?
+    line = file.readline
+    # pp [ :line=, line ]
+    break if line =~ /^\s*$/
+    line.chomp!
+    lines << line
   end
-  turtle[1] += 1
+
+  # pp [ :input_lines=, lines ]
+
+  $lines = lines
+  # Find @.
+  turtle = [ 0, 0, -1, 0 ]
+  $lines.each do | line |
+    if turtle[0] = line.index('@')
+      break
+    end
+    turtle[1] += 1
+  end
+  
+  puts "======================================================"
+  puts lines * "\n"
+  pp [ :turtle, turtle ]
+  result = parse(turtle)
+  pp [ :result=, result ]
+  
 end
-
-pp [ :turtle, turtle ]
-result = parse(turtle)
-pp [ :result=, result ]
-
 
