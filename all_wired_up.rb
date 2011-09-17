@@ -8,25 +8,20 @@ class WiredUp
   SPACE = ' '.freeze
 
 def c(x, y = nil)
-  if Array === x
-    y = x[1]
-    x = x[0]
-  end
-  if s = lines[y]
-    if 0 <= x and x < s.size
-      s = s[x, 1]
-      s = nil if s.empty? || s == SPACE
-    end
+  x, y = *x if Array === x
+  if s = lines[y] and 0 <= x and x < s.size
+    s = s[x, 1]
+    s = nil if s.empty? || s == SPACE
   end
   s
 end
 
 # Find @.
 def initial_turtle
-  turtle = [ 0, -1, -1, 0 ]
+  turtle = [ 0, 0, -1, 0 ]
   initial_turtle = lines.each do | line |
-    turtle[1] += 1
     break turtle if turtle[0] = line.index('@')
+    turtle[1] += 1
   end
   initial_turtle or raise "Cannot find @ in\n#{lines * "\n"}"
 end
